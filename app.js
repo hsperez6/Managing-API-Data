@@ -1,54 +1,33 @@
 const express = require('express');
 const app = express();
-
-const records = require('./records');
+const routes = require('./routes');
 
 app.use(express.json());
+app.use('/api', routes);
 
-// Send a GET request to /quotes to READ a list of quotes
-app.get('/quotes', async (req, res)=>{
-  
-  try{
-    const quotes = await records.getQuotes();
-    res.json(quotes);
-  } catch(err) {
-    res.json({message: err.message})
-  }
 
+/****************
+ * ERROR HANDLERS
+****************/
+// 404 Error Handler
+app.use( (req, res, next) => {
+  const err = new Error(" Resource Not Found");
+  err.status = 404;
+  next(err);
 });
 
-// Send a GET request to /quotes/:id to READ(view) a quote
-app.get('/quotes/:id', async (req, res)=>{
-
-  try{
-    const quote = await records.getQuote(req.params.id);
-    res.json(quote);
-  } catch(err){
-    res.json({message: err.message})
-  }
-
-});
-
-// Send a POST request to /quotes to  CREATE a new quote 
-app.post('/quotes', async (req, res)=>{
-
-  try {    
-    const newQuote = await records.createQuote({
-      quote: req.body.quote,
-      author: req.body.author
-    });
-    res.json(newQuote);
-  } catch(err){
-    res.json({message: err.message})
-  }
-
+// Global Error Handler
+app.use( (err, req, res, next) => {
+  res.status(err.status || 500);
+  res.json({
+    error: {
+      message: err.message
+    }
+  })
 });
 
 
-// Send a PUT request to /quotes/:id to UPDATE (edit) a quote
-
-// Send a DELETE request to /quotes/:id DELETE a quote 
-
-// Send a GET request to /quotes/quote/random to READ (view) a random quote
-
+/********
+ * SERVER
+ ********/
 app.listen(3000, () => console.log('Quote API listening on port 3000!'));
